@@ -1,18 +1,23 @@
-import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { BadRequestException, ConflictException, Injectable, InternalServerErrorException, NotFoundException, Query } from '@nestjs/common';
 import { CreatePokemonDto } from './dto/create-pokemon.dto';
 import { UpdatePokemonDto } from './dto/update-pokemon.dto';
 import { isValidObjectId, Model } from 'mongoose';
 import { Pokemon } from './entities/pokemon.entity';
 import { InjectModel } from '@nestjs/mongoose';
+import { PaginationDto } from '../common/dto/pagination.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class PokemonService {
+  private defaultLimit: number;
 
   constructor(
     @InjectModel( Pokemon.name )
-    private readonly pokemonModel: Model<Pokemon>
+    private readonly pokemonModel: Model<Pokemon>,
+    private readonly configService: ConfigService
   ){
-
+    this.defaultLimit=this.configService.get<number>('default_limit');
+    // console.log(defaultLimit);
   }
 
   async create(createPokemonDto: CreatePokemonDto) {
@@ -21,15 +26,14 @@ export class PokemonService {
       const pokemon = await this.pokemonModel.create(createPokemonDto);  
       return pokemon;
     } catch (error) {
-      // if (error.code === 11000 ) throw new BadRequestException(`Pokemon exists in db ${ JSON.stringify(error.keyValue)}`);
-      // console.log(error);
-      // throw new InternalServerErrorException(`Can't created Pokemon - Check server logs`);
       this.handleException(error);
     }
   }
 
-  findAll() {
-    return `This action returns all pokemon`;
+  findAll(paginationDto:PaginationDto) {
+  
+    const{limit = this.defaultLimit, offset=0}= paginationDto;
+    return this.pokemonModel.find().limit(limit).skip(offset).sort({no:1}).select('-__v');
   }
 
   async findOne(term: string) {
