@@ -34,7 +34,16 @@ yarn install
 ```
 docker-compose up -d
 ```
-
+5. Clonar el archivo __.env.template__ y renombrar la copia __.env__
+6. Lenar las variables de netonor definidas en el __.env__
+7. Ejecutar la aplicación en dev:
+```
+yarn start:dev
+```
+8. Reconstruir la base de datos en Mongo
+```
+http://localhost:3000/api/seed
+```
 
 ## Stack Usado
 * MongoDB
